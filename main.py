@@ -76,3 +76,11 @@ for contour in contours:
         cY = int(M["m01"] / M["m00"])
         cv2.putText(output_image, f"{color_name} {shape}", (cX - 50, cY),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
+
+
+# the results
+plt.figure(figsize=(12, 8))
+plt.imshow(output_image)
+plt.axis("off")
+plt.title("Detected Shapes and Colors (HSV)")
+plt.show()
