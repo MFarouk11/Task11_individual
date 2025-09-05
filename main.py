@@ -37,3 +37,42 @@ def identify_color_hsv(bgr_color):
         return "blue"
     else:
         return "unknown"
+# Shape detection and annotation
+for contour in contours:
+    area = cv2.contourArea(contour)
+    if area < 50:  
+        continue
+
+    # Approximate the contour to shaps
+    peri = cv2.arcLength(contour, True)
+    approx = cv2.approxPolyDP(contour, 0.02 * peri, True)
+
+    shape = "unidentified"
+    vertices = len(approx)
+
+    if vertices == 3:
+        shape = "triangle"
+    elif vertices == 4:
+        rect = cv2.minAreaRect(contour)
+        width, height = rect[1]
+        if width == 0 or height == 0:
+            continue
+        aspect_ratio = width / float(height)
+        shape = "square" if 0.95 <= aspect_ratio <= 1.05 else "rectangle"
+    elif vertices > 4:
+        shape = "circle"
+
+    # Mask the contour area
+    mask = np.zeros(image.shape[:2], dtype="uint8")
+    cv2.drawContours(mask, [contour], -1, 255, -1)
+    mean_color = cv2.mean(image, mask=mask)[:3]  
+    color_name = identify_color_hsv(mean_color)
+
+    #detected shape and color
+    cv2.drawContours(output_image, [approx], -1, (0, 0, 0), 2)
+    M = cv2.moments(contour)
+    if M["m00"] != 0:
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+        cv2.putText(output_image, f"{color_name} {shape}", (cX - 50, cY),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
